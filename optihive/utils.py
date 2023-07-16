@@ -1,16 +1,35 @@
 # ---DEPENDENCIES---------------------------------------------------------------
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from tqdm import tqdm
 
 
-# ---TRACKER--------------------------------------------------------------------
+# ---TRACKERS-------------------------------------------------------------------
 class Tracker(object):
-    def track(self, trackable, iteration):
+    def __init__(self):
+        self.set_trackable()
+
+    def set_trackable(self, trackable=None):
+        self.trackable = trackable
+
+    def track(self, iteration):
         raise NotImplementedError
+
+    def cease_tracking(self):
+        raise NotImplementedError
+
+
+class ProgressBarTracker(Tracker):
+    def __init__(self, n_iterations):
+        self.pb = tqdm(total=n_iterations)
+        self.set_trackable()
+
+    def track(self, iteration):
+        self.pb.update(1)
+
+    def cease_tracking(self):
+        self.pb.close()
 
 
 # ---BENCHMARK FUNCTIONS--------------------------------------------------------

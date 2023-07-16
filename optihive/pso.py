@@ -7,7 +7,6 @@
 
 # ---DEPENDENCIES---------------------------------------------------------------
 import numpy as np
-from tqdm import tqdm
 
 from . import utils
 
@@ -78,6 +77,8 @@ class VanillaSwarm(object):
         self.n_perturb = n_perturb
         self.r3 = r3
         self.trackers = trackers
+        for tracker in self.trackers:
+            tracker.set_trackable(self)
 
         self.X = self.init_X()
         self.V = self.init_V()
@@ -87,6 +88,10 @@ class VanillaSwarm(object):
         self.Xs = self.evaluate(self.X)
         self.Ps = self.evaluate(self.P)
         self.Gs = self.evaluate(self.G)[0]
+
+        # for tracking
+        self.run_last_n_iterations = None
+        self.total_runs = 0
 
     @property
     def R1(self):
@@ -196,7 +201,7 @@ class VanillaSwarm(object):
         self.V *= self.iw
         self.V += self.cc * self.R1 * (self.P - self.X)
         self.V += self.sc * self.R2 * (self.G - self.X)
-        if self.gw is not None:
+        if self.use_gradient:
             V_grad = np.zeros_like(self.V)
             current_eval = self.Xs.copy()
             for _ in range(self.n_perturb):
@@ -227,6 +232,9 @@ class VanillaSwarm(object):
             self.Gs = np.min(self.Xs)
 
     def run(self, n_iterations):
+        self.run_last_n_iterations = n_iterations
+        self.total_runs += n_iterations
+
         for i in range(n_iterations):
             self.update_X()
             self.update_Xs()
@@ -237,7 +245,7 @@ class VanillaSwarm(object):
             self.update_Gs()
             if self.trackers is not None:
                 for tracker in self.trackers:
-                    tracker.track(self, i)
+                    tracker.track(i)
 
 
 # ---SWARM TRACKERS-------------------------------------------------------------
@@ -267,28 +275,29 @@ class SwarmObjectiveTracker(utils.Tracker):
         self.XL_log = None
         self.XLs_log = None
         self.swarm_constants = None
+        self.set_trackable()
 
-    def track(self, swarm, iteration):
+    def track(self, iteration):
         if self.swarm_constants is None:
             self.swarm_constants = {}
             self.swarm_constants["tpi"] = [
-                list(swarm.search_space.keys()).index(param)
+                list(self.trackable.search_space.keys()).index(param)
                 for param in self.track_params
             ]
-            self.swarm_constants["npr"] = swarm.n_particles
-            self.swarm_constants["ss"] = swarm.search_space
+            self.swarm_constants["npr"] = self.trackable.n_particles
+            self.swarm_constants["ss"] = self.trackable.search_space
         if self.live:
             pass
         else:
             if iteration % self.dsl == 0:
                 if self.XL_log is None:
-                    self.XL_log = swarm.X[:, self.swarm_constants["tpi"]]
-                    self.XLs_log = swarm.Xs
+                    self.XL_log = self.trackable.X[:, self.swarm_constants["tpi"]]
+                    self.XLs_log = self.trackable.Xs
                 else:
                     self.XL_log = np.append(
-                        self.XL_log, swarm.X[:, self.swarm_constants["tpi"]]
+                        self.XL_log, self.trackable.X[:, self.swarm_constants["tpi"]]
                     )
-                    self.XLs_log = np.append(self.XLs_log, swarm.Xs)
+                    self.XLs_log = np.append(self.XLs_log, self.trackable.Xs)
 
     def draw_lazy(self, particle_indices, cmap="RdYlBu", levels=20):
         if self.XL_log is None:

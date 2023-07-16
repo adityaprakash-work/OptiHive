@@ -13,7 +13,7 @@ URL = "https://github.com/adityaprakash-work/OptiHive.git"
 EMAIL = "adityaprakash.work@gmail.com"
 AUTHOR = "Aditya Prakash"
 REQUIRES_PYTHON = ">=3.9.0"
-VERSION = "0.2.2"
+VERSION = "0.3.0"
 REQUIRED = ["tqdm"]
 EXTRAS = {}
 
@@ -85,7 +85,9 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    packages=find_packages(
+        exclude=["tests", "*.tests", "*.tests.*", "tests.*", "examples.*"]
+    ),
     # If package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
     # entry_points={

@@ -4,6 +4,8 @@
 
 # --Needed functionalities
 # - 1. Implentation of dummy particles to sample the objective contour.
+# - 2. Efficient loggers in SwarmObjectiveTracker
+# - 3. Add support for bool parameters types in VanillaSwarm
 
 # ---DEPENDENCIES---------------------------------------------------------------
 import numpy as np
@@ -173,7 +175,7 @@ class VanillaSwarm(object):
     def X_parse(self, X):
         if X.shape[1] != len(self.search_space):
             raise ValueError("Invalid shape for X")
-        X_p = np.empty((self.n_particles, len(self.search_space)), dtype=object)
+        X_p = np.empty((X.shape[0], len(self.search_space)), dtype=object)
         for i, (par, (par_type, ref)) in enumerate(self.search_space.items()):
             x = X[:, i]
             if par_type == "cat":
@@ -253,59 +255,68 @@ class SwarmObjectiveTracker(utils.Tracker):
     def __init__(
         self,
         track_params,
-        draw_step_particles=3,
-        draw_step_objective=9,
-        max_draws_objective=100,
-        live=True,
-        draw_step_lazy=3,
+        eager_step_particles=3,
+        eager_step_objective=9,
+        eager_cap_objective=100,
+        eager=True,
+        lazy_step=3,
+        lazy_cap_objective=100,
         n_dummy_particles=None,
     ):
         if len(track_params) != 2:
             raise ValueError("Only 2D plots are supported")
         self.track_params = track_params
-        self.dsp = draw_step_particles
-        self.dso = draw_step_objective
-        self.mdo = max_draws_objective
-        self.live = live
-        self.dsl = draw_step_lazy
+        self.esp = eager_step_particles
+        self.eso = eager_step_objective
+        self.eco = eager_cap_objective
+        self.eager = eager
+        self.ls = lazy_step
+        self.lco = lazy_cap_objective
         self.ndp = n_dummy_particles
         self.XP_log = None
         self.XO_log = None
         self.XOs_log = None
         self.XL_log = None
         self.XLs_log = None
-        self.swarm_constants = None
+        self.swarm_consts = None
         self.set_trackable()
 
     def track(self, iteration):
-        if self.swarm_constants is None:
-            self.swarm_constants = {}
-            self.swarm_constants["tpi"] = [
+        if self.swarm_consts is None:
+            self.swarm_consts = {}
+            self.swarm_consts["tpi"] = [
                 list(self.trackable.search_space.keys()).index(param)
                 for param in self.track_params
             ]
-            self.swarm_constants["npr"] = self.trackable.n_particles
-            self.swarm_constants["ss"] = self.trackable.search_space
-        if self.live:
+            self.swarm_consts["npr"] = self.trackable.n_particles
+            self.swarm_consts["ss"] = self.trackable.search_space
+        if self.eager:
             pass
         else:
-            if iteration % self.dsl == 0:
+            if iteration % self.ls == 0:
                 if self.XL_log is None:
-                    self.XL_log = self.trackable.X[:, self.swarm_constants["tpi"]]
+                    self.XL_log = self.trackable.X[:, self.swarm_consts["tpi"]]
                     self.XLs_log = self.trackable.Xs
                 else:
                     self.XL_log = np.append(
-                        self.XL_log, self.trackable.X[:, self.swarm_constants["tpi"]]
+                        self.XL_log,
+                        self.trackable.X[:, self.swarm_consts["tpi"]],
+                        axis=0,
                     )
-                    self.XLs_log = np.append(self.XLs_log, self.trackable.Xs)
+                    self.XLs_log = np.append(
+                        self.XLs_log,
+                        self.trackable.Xs,
+                        axis=0,
+                    )
 
-    def draw_lazy(self, particle_indices, cmap="RdYlBu", levels=20):
+    def draw_lazy(self, particle_indices, cmap="RdYlBu", levels=50):
         if self.XL_log is None:
             raise ValueError("No data to draw")
         else:
-            sns.set_style("whitegrid")
+            sns.set_style("darkgrid")
             sns.set_context("paper")
-            plt.tricontourf(
+            plt.figure(figsize=(6, 5))
+            tcf = plt.tricontourf(
                 self.XL_log[:, 0],
                 self.XL_log[:, 1],
                 self.XLs_log,
@@ -313,8 +324,9 @@ class SwarmObjectiveTracker(utils.Tracker):
                 levels=levels,
             )
             for pi in particle_indices:
-                pix = self.XL_log[pi :: self.swarm_constants["npr"], 0]
-                piy = self.XL_log[pi :: self.swarm_constants["npr"], 1]
+                pix = self.XL_log[pi :: self.swarm_consts["npr"], 0]
+                piy = self.XL_log[pi :: self.swarm_consts["npr"], 1]
+                ix, iy, fx, fy = pix[0], piy[0], pix[-1], piy[-1]
                 plt.plot(
                     pix,
                     piy,
@@ -322,18 +334,18 @@ class SwarmObjectiveTracker(utils.Tracker):
                     marker="o",
                     markersize=4,
                 )
-                plt.scatter(pix[0], piy[0], color="green", marker="o", s=20)
-                plt.scatter(pix[-1], piy[-1], color="red", marker="o", s=20)
+                plt.scatter(ix, iy, color="green", marker="o", s=30, zorder=10)
+                plt.scatter(fx, fy, color="red", marker="o", s=30, zorder=10)
             plt.xlim(
-                min(self.swarm_constants["ss"][self.track_params[0]][1]),
-                max(self.swarm_constants["ss"][self.track_params[0]][1]),
+                min(self.swarm_consts["ss"][self.track_params[0]][1]),
+                max(self.swarm_consts["ss"][self.track_params[0]][1]),
             )
             plt.ylim(
-                min(self.swarm_constants["ss"][self.track_params[1]][1]),
-                max(self.swarm_constants["ss"][self.track_params[1]][1]),
+                min(self.swarm_consts["ss"][self.track_params[1]][1]),
+                max(self.swarm_consts["ss"][self.track_params[1]][1]),
             )
             plt.xlabel(self.track_params[0])
             plt.ylabel(self.track_params[1])
             plt.title("Objective Function Contour")
-            plt.colorbar()
+            plt.colorbar(tcf)
             plt.show()

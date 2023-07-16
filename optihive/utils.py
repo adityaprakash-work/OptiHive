@@ -21,11 +21,13 @@ class Tracker(object):
 
 
 class ProgressBarTracker(Tracker):
-    def __init__(self, n_iterations):
-        self.pb = tqdm(total=n_iterations)
+    def __init__(self):
+        self.pb = None
         self.set_trackable()
 
     def track(self, iteration):
+        if self.pb is None:
+            self.pb = tqdm(total=self.trackable.run_last_n_iterations)
         self.pb.update(1)
 
     def cease_tracking(self):

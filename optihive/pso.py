@@ -7,15 +7,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-# ---TRACKER--------------------------------------------------------------------
-class Tracker(object):
-    def __call__(self, swarm, iteration):
-        self.task(swarm, iteration)
-
-    def task(self, swarm, iteration):
-        raise NotImplementedError
-
-
 # ---SWARM----------------------------------------------------------------------
 class VanillaSwarm(object):
     """
@@ -28,6 +19,8 @@ class VanillaSwarm(object):
     sc: social constant
     r1: random number bound
     r2: random number bound
+    gw: gradient weight
+    r3: random number bound
 
     vi(t + 1) = iw * vi(t)
                 + cc * U(0, r1) * (ibest(t) - xi(t))

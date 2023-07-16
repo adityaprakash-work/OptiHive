@@ -25,27 +25,3 @@ class RandomForestClassifierObjective(object):
         clf = RandomForestClassifier(**kwargs)
         clf.fit(self.Xtr, self.Ytr)
         return 1 - clf.score(self.Xte, self.Yte)
-
-
-x_vals = []
-y_vals = []
-
-
-def animate(i):
-    x = np.random.randint(0, 100, 10)
-    y1 = np.random.randint(0, 100, 10)
-    y2 = np.random.randint(0, 100, 10)
-
-    plt.cla()
-
-    plt.plot(x, y1, label="Channel 1")
-    plt.plot(x, y2, label="Channel 2")
-
-    plt.legend(loc="upper left")
-    plt.tight_layout()
-
-
-ani = FuncAnimation(plt.gcf(), animate, interval=1000)
-
-plt.tight_layout()
-plt.show()

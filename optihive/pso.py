@@ -2,9 +2,17 @@
 # Author: Aditya Prakash
 # Last edited: 2023-07-16
 
+# --Needed functionalities
+# - 1. Implentation of dummy particles to sample the objective contour.
+
 # ---DEPENDENCIES---------------------------------------------------------------
 import numpy as np
 from tqdm import tqdm
+
+from . import utils
+
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # ---SWARM----------------------------------------------------------------------
@@ -52,7 +60,7 @@ class VanillaSwarm(object):
         gw=0.1,
         n_perturb=3,
         r3=0.1,
-        tracker=None,
+        trackers=None,
     ):
         self.search_space = search_space
         self.n_particles = n_particles
@@ -69,13 +77,14 @@ class VanillaSwarm(object):
         self.gw = gw
         self.n_perturb = n_perturb
         self.r3 = r3
-        self.tracker = tracker
+        self.trackers = trackers
 
         self.X = self.init_X()
         self.V = self.init_V()
         self.P = self.init_P()
         self.G = self.init_G()
 
+        self.Xs = self.evaluate(self.X)
         self.Ps = self.evaluate(self.P)
         self.Gs = self.evaluate(self.G)[0]
 
@@ -164,7 +173,7 @@ class VanillaSwarm(object):
             x = X[:, i]
             if par_type == "cat":
                 X_p[:, i] = self.x_cat_parse(x, ref)
-            if par_type == "dis_int":
+            elif par_type == "dis_int":
                 X_p[:, i] = self.x_dis_parse(x, ref, True)
             elif par_type == "dis":
                 X_p[:, i] = self.x_dis_parse(x, ref, False)
@@ -188,28 +197,134 @@ class VanillaSwarm(object):
         self.V += self.cc * self.R1 * (self.P - self.X)
         self.V += self.sc * self.R2 * (self.G - self.X)
         if self.gw is not None:
-            X_eval = self.evaluate(self.X)
-            V_grad = np.empty_like(self.V)
+            V_grad = np.zeros_like(self.V)
+            current_eval = self.Xs.copy()
             for _ in range(self.n_perturb):
                 X_plus_dX = self.X + self.R3
                 X_plus_dX_eval = self.evaluate(X_plus_dX)
-                update = X_plus_dX_eval < X_eval
+                update = X_plus_dX_eval < current_eval
                 V_grad[update] = self.R3[update]
+                current_eval[update] = X_plus_dX_eval[update]
             self.V += self.gw * V_grad
 
-    def update_P_G(self):
-        X_eval = self.evaluate(self.X)
-        update = X_eval < self.Ps
+    def update_P(self):
+        update = self.Xs < self.Ps
         self.P[update] = self.X[update]
-        self.Ps[update] = X_eval[update]
-        if np.min(X_eval) < self.Gs:
-            self.G = self.X[np.argmin(X_eval)].reshape(1, -1)
-            self.Gs = np.min(X_eval)
+
+    def update_G(self):
+        if np.min(self.Xs) < self.Gs:
+            self.G = self.X[np.argmin(self.Xs)].reshape(1, -1)
+
+    def update_Xs(self):
+        self.Xs = self.evaluate(self.X)
+
+    def update_Ps(self):
+        update = self.Xs < self.Ps
+        self.Ps[update] = self.Xs[update]
+
+    def update_Gs(self):
+        if np.min(self.Xs) < self.Gs:
+            self.Gs = np.min(self.Xs)
 
     def run(self, n_iterations):
-        for i in tqdm(range(n_iterations)):
+        for i in range(n_iterations):
             self.update_X()
+            self.update_Xs()
             self.update_V()
-            self.update_P_G()
-            if self.tracker is not None:
-                self.tracker(self, i)
+            self.update_P()
+            self.update_Ps()
+            self.update_G()
+            self.update_Gs()
+            if self.trackers is not None:
+                for tracker in self.trackers:
+                    tracker.track(self, i)
+
+
+# ---SWARM TRACKERS-------------------------------------------------------------
+class SwarmObjectiveTracker(utils.Tracker):
+    def __init__(
+        self,
+        track_params,
+        draw_step_particles=3,
+        draw_step_objective=9,
+        max_draws_objective=100,
+        live=True,
+        draw_step_lazy=3,
+        n_dummy_particles=None,
+    ):
+        if len(track_params) != 2:
+            raise ValueError("Only 2D plots are supported")
+        self.track_params = track_params
+        self.dsp = draw_step_particles
+        self.dso = draw_step_objective
+        self.mdo = max_draws_objective
+        self.live = live
+        self.dsl = draw_step_lazy
+        self.ndp = n_dummy_particles
+        self.XP_log = None
+        self.XO_log = None
+        self.XOs_log = None
+        self.XL_log = None
+        self.XLs_log = None
+        self.swarm_constants = None
+
+    def track(self, swarm, iteration):
+        if self.swarm_constants is None:
+            self.swarm_constants = {}
+            self.swarm_constants["tpi"] = [
+                list(swarm.search_space.keys()).index(param)
+                for param in self.track_params
+            ]
+            self.swarm_constants["npr"] = swarm.n_particles
+            self.swarm_constants["ss"] = swarm.search_space
+        if self.live:
+            pass
+        else:
+            if iteration % self.dsl == 0:
+                if self.XL_log is None:
+                    self.XL_log = swarm.X[:, self.swarm_constants["tpi"]]
+                    self.XLs_log = swarm.Xs
+                else:
+                    self.XL_log = np.append(
+                        self.XL_log, swarm.X[:, self.swarm_constants["tpi"]]
+                    )
+                    self.XLs_log = np.append(self.XLs_log, swarm.Xs)
+
+    def draw_lazy(self, particle_indices, cmap="RdYlBu", levels=20):
+        if self.XL_log is None:
+            raise ValueError("No data to draw")
+        else:
+            sns.set_style("whitegrid")
+            sns.set_context("paper")
+            plt.tricontourf(
+                self.XL_log[:, 0],
+                self.XL_log[:, 1],
+                self.XLs_log,
+                cmap=cmap,
+                levels=levels,
+            )
+            for pi in particle_indices:
+                pix = self.XL_log[pi :: self.swarm_constants["npr"], 0]
+                piy = self.XL_log[pi :: self.swarm_constants["npr"], 1]
+                plt.plot(
+                    pix,
+                    piy,
+                    color="black",
+                    marker="o",
+                    markersize=4,
+                )
+                plt.scatter(pix[0], piy[0], color="green", marker="o", s=20)
+                plt.scatter(pix[-1], piy[-1], color="red", marker="o", s=20)
+            plt.xlim(
+                min(self.swarm_constants["ss"][self.track_params[0]][1]),
+                max(self.swarm_constants["ss"][self.track_params[0]][1]),
+            )
+            plt.ylim(
+                min(self.swarm_constants["ss"][self.track_params[1]][1]),
+                max(self.swarm_constants["ss"][self.track_params[1]][1]),
+            )
+            plt.xlabel(self.track_params[0])
+            plt.ylabel(self.track_params[1])
+            plt.title("Objective Function Contour")
+            plt.colorbar()
+            plt.show()

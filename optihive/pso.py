@@ -79,8 +79,9 @@ class VanillaSwarm(object):
         self.n_perturb = n_perturb
         self.r3 = r3
         self.trackers = trackers
-        for tracker in self.trackers:
-            tracker.set_trackable(self)
+        if self.trackers is not None:
+            for tracker in self.trackers:
+                tracker.set_trackable(self)
 
         self.X = self.init_X()
         self.V = self.init_V()
@@ -309,7 +310,9 @@ class SwarmObjectiveTracker(utils.Tracker):
                         axis=0,
                     )
 
-    def draw_lazy(self, particle_indices, cmap="RdYlBu", levels=50):
+    def draw_lazy(
+        self, particle_indices, cmap="RdYlBu", xlim=None, ylim=None, levels=50
+    ):
         if self.XL_log is None:
             raise ValueError("No data to draw")
         else:
@@ -336,14 +339,20 @@ class SwarmObjectiveTracker(utils.Tracker):
                 )
                 plt.scatter(ix, iy, color="green", marker="o", s=30, zorder=10)
                 plt.scatter(fx, fy, color="red", marker="o", s=30, zorder=10)
-            plt.xlim(
-                min(self.swarm_consts["ss"][self.track_params[0]][1]),
-                max(self.swarm_consts["ss"][self.track_params[0]][1]),
-            )
-            plt.ylim(
-                min(self.swarm_consts["ss"][self.track_params[1]][1]),
-                max(self.swarm_consts["ss"][self.track_params[1]][1]),
-            )
+            if xlim is not None:
+                plt.xlim(xlim[0], xlim[1])
+            else:
+                plt.xlim(
+                    min(self.swarm_consts["ss"][self.track_params[0]][1]),
+                    max(self.swarm_consts["ss"][self.track_params[0]][1]),
+                )
+            if ylim is not None:
+                plt.ylim(ylim[0], ylim[1])
+            else:
+                plt.ylim(
+                    min(self.swarm_consts["ss"][self.track_params[1]][1]),
+                    max(self.swarm_consts["ss"][self.track_params[1]][1]),
+                )
             plt.xlabel(self.track_params[0])
             plt.ylabel(self.track_params[1])
             plt.title("Objective Function Contour")

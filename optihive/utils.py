@@ -34,7 +34,7 @@ class ProgressBarTracker(Tracker):
         self.pb.close()
 
 
-# ---BENCHMARK FUNCTIONS--------------------------------------------------------
+# ---OBJECTIVES-----------------------------------------------------------------
 class RandomForestClassifierObjective(object):
     def __init__(self, X, Y, random_state=42):
         self.random_state = random_state
@@ -46,3 +46,5 @@ class RandomForestClassifierObjective(object):
         clf = RandomForestClassifier(**kwargs)
         clf.fit(self.Xtr, self.Ytr)
         return 1 - clf.score(self.Xte, self.Yte)
+    
+

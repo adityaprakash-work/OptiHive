@@ -22,7 +22,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/adityaprakash-work/OptiHive">
-    <img src="images/optihive_main.logo.png" alt="Logo" width="80" height="80">
+    <img src="images/optihive_main_logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">OptiHive</h3>
@@ -74,7 +74,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](product_screenshot)
+[![OptiHive Screen Shot][product-screenshot]](product_screenshot)
 
 This package features a collection of biomimetic optimization algorithms and heuristics like particle swarm optimization, ant colony optimization, firefly algorithm, cuckoo search, bat algorithm, etc. It is designed to be easy to use and implement in your own projects. It is also designed to be easily extensible, so that you can add your own algorithms and heuristics to the package.
 
@@ -84,7 +84,10 @@ This package features a collection of biomimetic optimization algorithms and heu
 
 ### Built With
 
-* 
+* [![Matplotlib][matplotlib-shield]][matplotlib-url]
+* [![NumPy][numpy-shield]][numpy-url]
+* [![scikit-learn][scikit-learn-shield]][scikit-learn-url]
+
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -111,9 +114,110 @@ This package features a collection of biomimetic optimization algorithms and heu
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+### Common Imports
+```python
+import numpy as np
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from optihive import pso as ohp
+from optihive import utils as ohu
+from optihive import benchmarks as ohb
+from optihive import objectives as oho
+```
+### Objective Functions
+```python
+# Objectivefunction will be given a dictionary of parameters, with the keys
+# being the parameter names and the values being the parameter values. 'f' here
+# is a dummy that directly acts on x and y
+f = lambda x, y: (x-3.14)**2 + (y-2.72)**2 + np.sin(3*x+1.41) + np.sin(4*y-1.73)
+
+# 'of' however acts on the expected dictionary by unpacking it.
+of = lambda kwargs: f(**kwargs)
+print(f"of(1, 2) = {of({'x': 1, 'y': 2})}")
+```
+```
+of(1, 2) = 4.130187303206262
+```
+### Using VanillaSwarm with a BenchmarkObjective
+#### Defining the search space
+```python
+ss2d_bucof = {
+    "x": ("con", bucof.bounds_2d[: 2]),
+    "y": ("con", bucof.bounds_2d[2:]),	
+}
+```
+#### Initializing BenchmarkObjective, VanillaSwarm and SwarmObjectiveTracker
+```python
+hotof = ohb.HolderTableObjective()
+
+sot_hot = ohp.SwarmObjectiveTracker(
+    track_params=["x", "y"],
+    eager=False,
+    lazy_step=2,
+)
+
+print("True loss Contour")
+hotof.plot2d()
+for use_grad in [False, True]:
+    sot_hot = ohp.SwarmObjectiveTracker(
+        track_params=["x", "y"],
+        eager=False,
+        lazy_step=2,
+    )
+    swarm_hot = ohp.VanillaSwarm(
+        search_space=ss2d_hotof,
+        n_particles=200,
+        objective_function=hotof,
+        cc=0.3,
+        sc=0.3,
+        r1=0.3,
+        r2=0.3,
+        use_gradient=use_grad,
+        gw=0.1,
+        n_perturb=2,
+        r3=0.1,
+        trackers=[sot_hot],
+    )
+
+    print(">>> Use Gradient: ", use_grad)
+    print(">> Initial Values")
+    print(f"swarm_hot | G: {swarm_hot.G}, Gs: {swarm_hot.Gs}")
+
+    swarm_hot.run(500)
+
+    print(">> Final Values")
+    print(f"swarm_hot | G: {swarm_hot.G}, Gs: {swarm_hot.Gs}")
+    print(f"hotof | G, Gs: {hotof.global_minima_2d}")
+    sot_hot.draw_lazy(
+        particle_indices=[p for p in range(0, swarm_hot.n_particles, 20)],
+    )
+```
+```
+True loss Contour
+```
+[![hot_obj][hot_obj]](hot_obj_png)
+```
+>>> Use Gradient:  False
+>> Initial Values
+swarm_hot | G: [[ 7.2977996 -9.677767 ]], Gs: -14.331993283198267
+>> Final Values
+swarm_hot | G: [[-7.909739 -9.306982]], Gs: -17.80278473486288
+hotof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
+```
+[![hot_obj_ugf][hot_obj_ugf_png]](hot_obj_ugf_png)
+```
+>>> Use Gradient:  True
+>> Initial Values
+swarm_hot | G: [[ 8.547695 -9.451452]], Gs: -16.3324676311381
+>> Final Values
+swarm_hot | G: [[-8.055022 -9.66459 ]], Gs: -19.20850256787143
+hotof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
+```
+[![hot_obj_ugt][hot_obj_ugt_png]](hot_obj_ugt_png)
+
+_For more examples, please refer to the [Documentation](https://github.com/adityaprakash-work/OptiHive)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -121,12 +225,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 <!-- ROADMAP -->
 ## Roadmap
-
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
-
 See the [open issues](https://github.com/adityaprakash-work/OptiHive/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -154,7 +252,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -163,7 +261,10 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@adityaprakash_t](https://twitter.com/twitter_handle) - email@email_client.com
+Aditya Prakash  
+Twitter - [@adityaprakash_t](https://twitter.com/adityaprakash_t)  
+Email - [adityaprakash.work@gmail.com](mailto:adityaprakash.work@gmail.com)
+
 
 Project Link: [https://github.com/adityaprakash-work/OptiHive](https://github.com/adityaprakash-work/OptiHive)
 
@@ -174,9 +275,8 @@ Project Link: [https://github.com/adityaprakash-work/OptiHive](https://github.co
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* [Mathematical Modelling and Applications of Particle SwarmOptimization](ack1)
+* [A New Discrete Particle Swarm Optimization Algorithm](ack2)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -197,3 +297,15 @@ Project Link: [https://github.com/adityaprakash-work/OptiHive](https://github.co
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/aditya-prakash-work
 [product-screenshot]: images/window_screenshot.png
+[hot_obj]: images/hot_obj.png
+[hot_obj_ugf_png]: images/hot_obj_ugf.png
+[hot_obj_ugt_png]: images/hot_obj_ugt.png
+[Matplotlib-shield]: https://img.shields.io/badge/Matplotlib-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black
+[Matplotlib-url]: https://matplotlib.org/
+[NumPy-shield]: https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white
+[NumPy-url]: https://numpy.org/
+[scikit-learn-shield]: https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white
+[scikit-learn-url]: https://scikit-learn.org/stable/
+
+[ack1]: https://www.diva-portal.org/smash/get/diva2:829959/FULLTEXT01.pdf
+[ack2]: https://www.cs.montana.edu/sheppard/pubs/gecco-2016a.pdf#:~:text=In%20this%20paper%2C%20we%20present%20a%20ver-sion%20of,values%2C%20and%20thePSO%20update%20modi%0Ces%20the%20probability%20distributions.

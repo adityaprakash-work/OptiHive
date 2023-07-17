@@ -180,7 +180,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Your Name - [@adityaprakash_t](https://twitter.com/twitter_handle) - email@email_client.com
 
 Project Link: [https://github.com/adityaprakash-work/OptiHive](https://github.com/adityaprakash-work/OptiHive)
 
@@ -210,7 +210,7 @@ Project Link: [https://github.com/adityaprakash-work/OptiHive](https://github.co
 [issues-shield]: https://img.shields.io/github/issues/adityaprakash-work/OptiHive.svg?style=for-the-badge
 [issues-url]: https://github.com/adityaprakash-work/OptiHive/issues
 [license-shield]: https://img.shields.io/github/license/adityaprakash-work/OptiHive.svg?style=for-the-badge
-[license-url]: https://github.com/adityaprakash-work/OptiHive/blob/master/LICENSE
+[license-url]: https://github.com/adityaprakash-work/OptiHive/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/aditya-prakash-work
 [product-screenshot]: images/window_screenshot.png

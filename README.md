@@ -74,7 +74,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://github.com/adityaprakash-work/OptiHive/images/window_screenshot.png)
+[![Product Name Screen Shot][product-screenshot]](product_screenshot)
 
 This package features a collection of biomimetic optimization algorithms and heuristics like particle swarm optimization, ant colony optimization, firefly algorithm, cuckoo search, bat algorithm, etc. It is designed to be easy to use and implement in your own projects. It is also designed to be easily extensible, so that you can add your own algorithms and heuristics to the package.
 
@@ -93,32 +93,15 @@ This package features a collection of biomimetic optimization algorithms and heu
 
 <!-- GETTING STARTED -->
 ## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
    ```sh
    git clone https://github.com/adityaprakash-work/OptiHive.git
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
+2. pip 
+   ```python
+   pip install git+https://github.com/adityaprakash-work/OptiHive.git
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

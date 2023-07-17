@@ -148,6 +148,7 @@ ss2d_htoof = {
     "y": ("con", bucof.bounds_2d[2:]),	
 }
 ```
+
 #### Initializing BenchmarkObjective, VanillaSwarm and SwarmObjectiveTracker
 ```python
 htoof = ohb.HolderTableObjective()

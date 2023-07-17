@@ -1,12 +1,20 @@
-# ---DEPENDENCIES---------------------------------------------------------------
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+# ---INFO-----------------------------------------------------------------------
+# Author: Aditya Prakash
+# Last edited: 2023-07-17
 
+# --Needed functionalities
+
+# ---DEPENDENCIES---------------------------------------------------------------
 from tqdm import tqdm
 
 
 # ---TRACKERS-------------------------------------------------------------------
 class Tracker(object):
+    """
+    A tracker is an object that tracks the progress of an optimization algorithm
+    during its run.
+    """
+
     def __init__(self):
         self.set_trackable()
 
@@ -21,6 +29,11 @@ class Tracker(object):
 
 
 class ProgressBarTracker(Tracker):
+    """
+    A progress bar tracker is a tracker that tracks the progress of an
+    optimization algorithm using a progress bar.
+    """
+
     def __init__(self):
         self.pb = None
         self.set_trackable()
@@ -32,19 +45,3 @@ class ProgressBarTracker(Tracker):
 
     def cease_tracking(self):
         self.pb.close()
-
-
-# ---OBJECTIVES-----------------------------------------------------------------
-class RandomForestClassifierObjective(object):
-    def __init__(self, X, Y, random_state=42):
-        self.random_state = random_state
-        self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(
-            X, Y, test_size=0.2, random_state=self.random_state
-        )
-
-    def __call__(self, kwargs):
-        clf = RandomForestClassifier(**kwargs)
-        clf.fit(self.Xtr, self.Ytr)
-        return 1 - clf.score(self.Xte, self.Yte)
-    
-

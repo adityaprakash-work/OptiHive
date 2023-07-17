@@ -13,7 +13,7 @@ URL = "https://github.com/adityaprakash-work/OptiHive.git"
 EMAIL = "adityaprakash.work@gmail.com"
 AUTHOR = "Aditya Prakash"
 REQUIRES_PYTHON = ">=3.9.0"
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 REQUIRED = ["tqdm"]
 EXTRAS = {}
 

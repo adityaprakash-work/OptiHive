@@ -5,7 +5,8 @@
 # --Needed functionalities
 # - 1. Implentation of dummy particles to sample the objective contour.
 # - 2. Efficient loggers in SwarmObjectiveTracker
-# - 3. Add support for bool parameters types in VanillaSwarm
+# - 3. Add support for bool parameter types in VanillaSwarm
+# - 4. Eager support in SwarmObjectiveTracker
 
 # ---DEPENDENCIES---------------------------------------------------------------
 import numpy as np
@@ -142,6 +143,14 @@ class VanillaSwarm(object):
 
     @staticmethod
     def closest_to(arr, target):
+        """
+        Returns the closest value in arr to target
+
+        arr: array of values
+        target: target value
+
+        returns: closest value in arr to target
+        """
         arr = np.array(arr)
         target = np.array(target)
 
@@ -157,12 +166,29 @@ class VanillaSwarm(object):
         return result
 
     def x_dis_parse(self, x_dis, reference, enforce_int):
+        """
+        Parses a discrete parameter
+
+        x_dis: discrete parameter
+        reference: reference values
+        enforce_int: whether to enforce integer values
+
+        returns: parsed discrete parameter
+        """
         x_dis_p = self.closest_to(reference, x_dis)
         if enforce_int:
             x_dis_p = x_dis_p.astype(np.int32)
         return x_dis_p
 
     def x_cat_parse(self, x_cat, reference):
+        """
+        Parses a categorical parameter
+
+        x_cat: categorical parameter
+        reference: reference values
+
+        returns: parsed categorical parameter
+        """
         reference = np.array(reference)
         reference_int = list(range(len(reference)))
         x_cat_p = self.closest_to(reference_int, x_cat).astype(np.int32)
@@ -170,6 +196,14 @@ class VanillaSwarm(object):
         return x_cat_p
 
     def x_con_parse(self, x_con, reference):
+        """
+        Parses a continuous parameter
+
+        x_con: continuous parameter
+        reference: reference values
+
+        returns: parsed continuous parameter
+        """
         x_con_p = np.clip(x_con, reference[0], reference[1])
         return x_con_p
 
@@ -249,10 +283,52 @@ class VanillaSwarm(object):
             if self.trackers is not None:
                 for tracker in self.trackers:
                     tracker.track(i)
+        for tracker in self.trackers:
+            tracker.cease_tracking()
 
 
 # ---SWARM TRACKERS-------------------------------------------------------------
 class SwarmObjectiveTracker(utils.Tracker):
+    """
+    Tracks the objective function of the swarm
+
+    eager_step_particles: iterations that are multiples of 'this' number are
+                        tracked for particles
+    eager_step_objective: iterations that are multiples of 'this' number are
+                        tracked for objective
+    eager_cap_objective: maximum iteration where data for approx. contour is
+                        logged
+    eager: whether to draw live plots or not
+    lazy_step: iterations that are multiples of 'this' number are tracked
+    lazy_cap_objective: maximum iteration where data for approx. contour is
+                        logged
+    n_dummy_particles: number of dummy particles to sample the objective
+                        contour
+
+    The objective function is tracked in two ways:
+    1. Eager: The objective function is tracked for all particles at every
+            iteration that is a multiple of 'eager_step_particles'. The
+            objective function is also tracked for the global best particle
+            at every iteration that is a multiple of 'eager_step_objective'.
+            The objective function is plotted live at every iteration that is
+            a multiple of 'eager_step_objective'. The particles are  plotted
+            live at every iteration that is a multiple of 'eager_step_particles'
+            and the global best particle is plotted live at every iteration that
+            is a multiple of 'eager_step_particle'.
+    2. Lazy: The objective function is tracked for all particles at every
+            iteration that is a multiple of 'lazy_step'. The objective function
+            is also tracked for the global best particle at every iteration
+            that is a multiple of 'lazy_step'. The objective function is plotted
+            at every iteration that is a multiple of 'lazy_step'. The particles
+            are plotted at every iteration that is a multiple of 'lazy_step'
+            and the global best particle is plotted at every iteration that is
+            a multiple of 'lazy_step'.
+
+    The objective function is approximated by sampling the search space with
+    'n_dummy_particles' dummy particles and real particles. The dummy particles
+    move randomly.
+    """
+
     def __init__(
         self,
         track_params,

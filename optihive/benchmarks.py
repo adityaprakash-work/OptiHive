@@ -1,6 +1,8 @@
 # ---INFO-----------------------------------------------------------------------
 # Author: Aditya Prakash
-# Last edited: 2023-07-16
+# Last edited: 2023-07-17
+
+# --Needed functionalities
 
 # ---DEPENDENCIES---------------------------------------------------------------
 import numpy as np

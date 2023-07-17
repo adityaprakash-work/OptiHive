@@ -143,33 +143,33 @@ of(1, 2) = 4.130187303206262
 ### Using VanillaSwarm with a BenchmarkObjective
 #### Defining the search space
 ```python
-ss2d_bucof = {
+ss2d_htoof = {
     "x": ("con", bucof.bounds_2d[: 2]),
     "y": ("con", bucof.bounds_2d[2:]),	
 }
 ```
 #### Initializing BenchmarkObjective, VanillaSwarm and SwarmObjectiveTracker
 ```python
-hotof = ohb.HolderTableObjective()
+htoof = ohb.HolderTableObjective()
 
-sot_hot = ohp.SwarmObjectiveTracker(
+sot_hto = ohp.SwarmObjectiveTracker(
     track_params=["x", "y"],
     eager=False,
     lazy_step=2,
 )
 
 print("True loss Contour")
-hotof.plot2d()
+htoof.plot2d()
 for use_grad in [False, True]:
-    sot_hot = ohp.SwarmObjectiveTracker(
+    sot_hto = ohp.SwarmObjectiveTracker(
         track_params=["x", "y"],
         eager=False,
         lazy_step=2,
     )
-    swarm_hot = ohp.VanillaSwarm(
-        search_space=ss2d_hotof,
+    swarm_hto = ohp.VanillaSwarm(
+        search_space=ss2d_htoof,
         n_particles=200,
-        objective_function=hotof,
+        objective_function=htoof,
         cc=0.3,
         sc=0.3,
         r1=0.3,
@@ -178,20 +178,20 @@ for use_grad in [False, True]:
         gw=0.1,
         n_perturb=2,
         r3=0.1,
-        trackers=[sot_hot],
+        trackers=[sot_hto],
     )
 
     print(">>> Use Gradient: ", use_grad)
     print(">> Initial Values")
-    print(f"swarm_hot | G: {swarm_hot.G}, Gs: {swarm_hot.Gs}")
+    print(f"swarm_hto | G: {swarm_hto.G}, Gs: {swarm_hto.Gs}")
 
-    swarm_hot.run(500)
+    swarm_hto.run(500)
 
     print(">> Final Values")
-    print(f"swarm_hot | G: {swarm_hot.G}, Gs: {swarm_hot.Gs}")
-    print(f"hotof | G, Gs: {hotof.global_minima_2d}")
-    sot_hot.draw_lazy(
-        particle_indices=[p for p in range(0, swarm_hot.n_particles, 20)],
+    print(f"swarm_hto | G: {swarm_hto.G}, Gs: {swarm_hto.Gs}")
+    print(f"htoof | G, Gs: {htoof.global_minima_2d}")
+    sot_hto.draw_lazy(
+        particle_indices=[p for p in range(0, swarm_hto.n_particles, 20)],
     )
 ```
 ```
@@ -201,19 +201,19 @@ True loss Contour
 ```
 >>> Use Gradient:  False
 >> Initial Values
-swarm_hot | G: [[ 7.2977996 -9.677767 ]], Gs: -14.331993283198267
+swarm_hto | G: [[ 7.2977996 -9.677767 ]], Gs: -14.331993283198267
 >> Final Values
-swarm_hot | G: [[-7.909739 -9.306982]], Gs: -17.80278473486288
-hotof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
+swarm_hto | G: [[-7.909739 -9.306982]], Gs: -17.80278473486288
+htoof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
 ```
 [![hot_obj_ugf][hot_obj_ugf_png]](hot_obj_ugf_png)
 ```
 >>> Use Gradient:  True
 >> Initial Values
-swarm_hot | G: [[ 8.547695 -9.451452]], Gs: -16.3324676311381
+swarm_hto | G: [[ 8.547695 -9.451452]], Gs: -16.3324676311381
 >> Final Values
-swarm_hot | G: [[-8.055022 -9.66459 ]], Gs: -19.20850256787143
-hotof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
+swarm_hto | G: [[-8.055022 -9.66459 ]], Gs: -19.20850256787143
+htoof | G, Gs: ((8.05502, 9.66459, -19.2085), (-8.05502, 9.66459, -19.2085), (8.05502, -9.66459, -19.2085), (-8.05502, -9.66459, -19.2085))
 ```
 [![hot_obj_ugt][hot_obj_ugt_png]](hot_obj_ugt_png)
 
@@ -242,7 +242,7 @@ Don't forget to give the project a star! Thanks again!
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+4. Push to the Branch (`git push main feature/AmazingFeature`)
 5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

@@ -22,10 +22,10 @@ class Tracker(object):
         self.trackable = trackable
 
     def track(self, iteration):
-        raise NotImplementedError
+        pass
 
     def cease_tracking(self):
-        raise NotImplementedError
+        pass
 
 
 class ProgressBarTracker(Tracker):

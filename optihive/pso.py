@@ -83,6 +83,8 @@ class VanillaSwarm(object):
         if self.trackers is not None:
             for tracker in self.trackers:
                 tracker.set_trackable(self)
+        else:
+            self.trackers = []
 
         self.X = self.init_X()
         self.V = self.init_V()
